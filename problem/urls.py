@@ -1,11 +1,11 @@
 from django.urls import path
-from . import views
+from .views import *
 
 urlpatterns = [
-    path('',views.apiOverView,name='api-overview'),
-    path('index',views.index,name='index'),
-    path('create',views.create,name='create'),
-    path('delete/<str:pk>',views.delete,name='delete'),
-    path('single/<str:pk>',views.single,name='single'),
-    path('update/<str:pk>',views.update,name='update')
+    path('',ViewProblem.as_view()),
+    path('<int:pk>',ShowProblem.as_view()),
+    path('create/',CreateProblem.as_view()),
+    path('edit/<int:pk>',EditProblem.as_view()),
+    path('update/<int:pk>',UpdateProblem.as_view()),
+    path('delete/<int:pk>',DeleteProblem.as_view())
 ]
