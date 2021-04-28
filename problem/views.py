@@ -1,67 +1,49 @@
 from django.shortcuts import render
-
-# Create your views here.
-from django.shortcuts import render
-
-# Create your views here.
-from django.shortcuts import render
-from django.http import JsonResponse
 from .sz import ProblemSerializer as PS
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
-
+from rest_framework.views import APIView
+from rest_framework import generics,permissions,status
+from rest_framework.parsers import MultiPartParser,FormParser
 from .models import Problem
-# Create your views here.
 
-@api_view(['GET'])
-def apiOverView(request):
-    api_urls = {
-        'Index':'/index',
-        'Detail':'/detail/<str:pk>',
-        'Create':'/create',
-        'Update':'/update/<str:pk>',
-        'Delete':'/delete/<str:pk>',
-    }
-    return Response(api_urls)
+class ViewProblem(generics.ListCreateAPIView):
+    queryset = Problem.objects.all()
+    serializer_class = PS
+    permission_classes = (permissions.AllowAny,)
 
-@api_view(['GET'])
-def index(request):
-    problems = Problem.objects.all()
-    sz = PS(problems,many=True)
-    return Response(sz.data)
+class ShowProblem(generics.RetrieveAPIView):
+    queryset = Problem.objects.all()
+    serializer_class = PS
+    permission_classes = (permissions.AllowAny,)
 
-@api_view(['GET'])
-def single(request,pk):
-    problem = Problem.objects.get(id=pk)
-    sz = PK(problems,many=False)
+class CreateProblem(APIView):
+    parser_classes = [MultiPartParser,FormParser]
 
-    return Response(sz.data)
+    def post(self,request,format=None):
+        sz = PS(data=request.data)
+        if sz.is_valid():
+            sz.save(author = request.user)
+            return Response(sz.data,status=status.HTTP_200_OK)
+        else:
+            return Response(sz.errors,status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['POST'])
-def create(request):
-    request.data.author=request.user
-    print(request.data,type(request.data))
-    sz = PS(data=request.data)
+class EditProblem(generics.RetrieveAPIView):
+    queryset = Problem.objects.all()
+    serializer_class = PS
 
-    if sz.is_valid():
-        print("OK")
-        sz.save()
-        
-    return Response(sz.data)
+class UpdateProblem(generics.UpdateAPIView):
+    parser_classes = [MultiPartParser,FormParser]
 
-@api_view(['PUT'])
-def update(request,pk):
-    problem = Problem.objects.get(id=pk)
-    sz = PS(instance=problem,data=request.data)
+    def put(self,request,pk,format=None):
+        problem = Problem.objects.get(id=pk)
+        sz = PS(instance=problem,data=request.data)
 
-    if sz.is_valid():sz.save()
+        if sz.is_valid():
+            sz.save()
+            return Response(sz.data,status=status.HTTP_200_OK)
+        else:
+            return Response(sz.errors,status=status.HTTP_400_BAD_REQUEST)
 
-    return Response(sz.data)
-
-@api_view(['DELETE'])
-def delete(request,pk):
-    problem = Problem.objects.get(id=pk)
-    problem.delete()
-
-    return Response("Deleted Successfully")
-
+class DeleteProblem(generics.DestroyAPIView):
+    queryset = Problem.objects.all()
+    serializer_class = PS
