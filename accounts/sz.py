@@ -1,11 +1,22 @@
 from rest_framework import serializers as sz
 from .models import *
-from django.contrib.auth.models import User
+from .models import User
 
-class GetFullUserSerializer(sz.ModelSerializer):
+class GetUserIdSerializer(sz.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id','username','is_superuser')
+        fields = ('id',)
+class FollowerTargetSerializer(sz.ModelSerializer):
+    follower=GetUserIdSerializer(read_only=True,many=False)
+    target=GetUserIdSerializer(read_only=True,many=False)
+    class Meta:
+        model = Follow
+        fields = ('id','target','follower')
+class GetFullUserSerializer(sz.ModelSerializer):
+    friends = FollowerTargetSerializer(read_only=True,many=True,allow_null=True)
+    class Meta:
+        model = User
+        fields = ('id','fullname','email','introduction','avatar','friends')
 
 class UserSerializerWithToken(sz.ModelSerializer):
     password = sz.CharField(write_only=True)
@@ -19,7 +30,7 @@ class UserSerializerWithToken(sz.ModelSerializer):
         return token
     def create(self, validated_data):
         user = User.objects.create(
-            username = validated_data['username'],
+            email = validated_data['email'],
         )
         user.set_password(validated_data['password'])
         user.save()
@@ -27,4 +38,4 @@ class UserSerializerWithToken(sz.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ('token', 'username', 'password')
+        fields = ('token', 'email', 'password')

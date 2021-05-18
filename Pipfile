@@ -9,6 +9,7 @@ djangorestframework-jwt = "*"
 djangorestframework = "*"
 django = "*"
 pillow = "*"
+pylint = "*"
 
 [dev-packages]
 

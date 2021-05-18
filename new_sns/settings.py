@@ -12,10 +12,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 import os
-<<<<<<< HEAD
-=======
 import datetime
->>>>>>> dev2
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -43,14 +40,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-<<<<<<< HEAD
-    'problem',
-    'corsheaders',
-]
-
-MIDDLEWARE = [
-        'corsheaders.middleware.CorsMiddleware',
-=======
     'corsheaders',
     'accounts',
     'problem'
@@ -60,7 +49,6 @@ MIDDLEWARE = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
->>>>>>> dev2
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -166,7 +154,12 @@ JWT_AUTH = {
     'JWT_RESPONSE_PAYLOAD_HANDLER':
     'accounts.utils.custom_jwt_response_handler',
     'JWT_VERIFY_EXPIRATION': False,
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=600),
+    'JWT_ALLOW_REFRESH': True,
+    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=7),
 }
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
+
+AUTH_USER_MODEL = 'accounts.User'

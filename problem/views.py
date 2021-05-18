@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from .sz import ProblemSerializer as PS
+from accounts.sz import GetFullUserSerializer as GS
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics,permissions,status
@@ -19,10 +20,10 @@ class ShowProblem(generics.RetrieveAPIView):
 class CreateProblem(APIView):
     parser_classes = [MultiPartParser,FormParser]
 
-    def post(self,request,format=None):
-        sz = PS(data=request.data)
-        if sz.is_valid():
-            sz.save(author = request.user)
+    def post(self,request,format=None):        
+        sz = PS(data=request.data)                  
+        if sz.is_valid():            
+            sz.save(author=request.user)
             return Response(sz.data,status=status.HTTP_200_OK)
         else:
             return Response(sz.errors,status=status.HTTP_400_BAD_REQUEST)
@@ -35,8 +36,9 @@ class UpdateProblem(generics.UpdateAPIView):
     parser_classes = [MultiPartParser,FormParser]
 
     def put(self,request,pk,format=None):
-        problem = Problem.objects.get(id=pk)
+        problem = Problem.objects.get(id=pk)        
         sz = PS(instance=problem,data=request.data)
+
 
         if sz.is_valid():
             sz.save()
