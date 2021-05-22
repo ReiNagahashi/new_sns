@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser,FormParser
 from django.contrib.auth.forms import AuthenticationForm
 from .models import User
+from problem.sz import ProblemSerializer
 import datetime
 
 
@@ -15,10 +16,12 @@ def get_current_user(request):
     serializer = GetFullUserSerializer(request.user)
     return Response(serializer.data)
 # show user
-class ShowUser(generics.RetrieveAPIView):
-    queryset = User.objects.all()
-    serializer_class = GetFullUserSerializer
-    permission_classes = (permissions.AllowAny,)
+class ShowUser(APIView):
+    def get(self,request,pk):
+        user = User.objects.get(id=pk)
+        sz = GetFullUserSerializer(user,many=False)        
+        savedProblem=ProblemSerializer(user.problemLikes.all(),many=True)        
+        return Response({"user":sz.data,"savedProblems":savedProblem.data },status=status.HTTP_200_OK)
 
 # check if the pass&email are valid
 class CheckInfo(APIView):

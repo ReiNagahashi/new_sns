@@ -12,7 +12,7 @@ class ProblemLike(models.Model):
 
 class Problem(models.Model):
     title = models.CharField(max_length=30)
-    description = models.CharField(max_length=100)
+    description = models.CharField(max_length=1000)
     thumb = models.ImageField(_("Image"),upload_to=upload_to,null=True)
     video = models.FileField(upload_to='video/%y', blank=True,null=True)
     author = models.ForeignKey(User,on_delete=models.CASCADE)
