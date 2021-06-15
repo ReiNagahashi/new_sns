@@ -18,6 +18,7 @@ class Problem(models.Model):
     author = models.ForeignKey(User,on_delete=models.CASCADE)
     likes = models.ManyToManyField(User,related_name="problemLikes",blank=True)
     date = models.DateTimeField(default=timezone.now)
+    
     class Meta:
         ordering = ('-date',)
     def __str__(self):

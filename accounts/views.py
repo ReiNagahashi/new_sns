@@ -1,14 +1,13 @@
 from django.shortcuts import render
-from .sz import FollowerTargetSerializer,GetFullUserSerializer,UserSerializerWithToken
+from .sz import GetBasicUserInfoSerializer,GetFullUserSerializer,UserSerializerWithToken
 from rest_framework import generics,permissions,status
+
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser,FormParser
-from django.contrib.auth.forms import AuthenticationForm
-from .models import User
+from .models import User,UserFollowing
 from problem.sz import ProblemSerializer
-import datetime
 
 
 @api_view(['GET'])
@@ -23,10 +22,23 @@ class ShowUser(APIView):
         savedProblem=ProblemSerializer(user.problemLikes.all(),many=True)        
         return Response({"user":sz.data,"savedProblems":savedProblem.data },status=status.HTTP_200_OK)
 
+# show followings & followers 
+class ShowFollow(APIView):
+    def get(self,request,pk):
+        user = User.objects.get(id=pk)
+        followingUsers=user.following.all()
+        following=[followingUser.following_user_id for followingUser in followingUsers]
+        followingSz = GetBasicUserInfoSerializer(following,many=True)        
+
+        followerUsers=user.followers.all()
+        followers=[follower.user_id for follower in followerUsers]
+        followersSz = GetBasicUserInfoSerializer(followers,many=True)   
+
+        return Response({"following":followingSz.data,"followers":followersSz.data },status=status.HTTP_200_OK)
+
 # check if the pass&email are valid
 class CheckInfo(APIView):
-    permission_classes = (permissions.AllowAny,)
-    
+        
     def post(self,request):
         try:        
             email = User.objects.get(email=request.data.get('user')['email'])
@@ -67,23 +79,16 @@ class CreateProfile(generics.UpdateAPIView):
         else:
             return Response(sz.errors,status=status.HTTP_400_BAD_REQUEST)
 # Follow
-class FollowUser(APIView):
-    permission_classes = (permissions.AllowAny,)
-    def post(self,request):                
-        friendsSerializer = FollowerTargetSerializer(data=request.data)        
-        if friendsSerializer.is_valid():
-            target = User.objects.get(id=request.data["target"])
-            friendsSerializer.save(follower=request.user,target=target)
-            print(request.user)
-            # follower = User.objects.get(id=request.data["follower"])
-            # follower=request.data["follower"],target=request.data["target"]
-            sz = GetFullUserSerializer(instance=request.user.data,data=friendsSerializer.data)        
-            # follower.friends.add(friendsSerializer,through_defaults={'date':datetime.now()})            
-            # print(friendsSerializer,sz)
-            if sz.is_valid():             
-                sz.save()            
-                return Response(sz.data,status=status.HTTP_200_OK)
-            else:
-                return Response(sz.errors,status=status.HTTP_400_BAD_REQUEST)
+class Follow(APIView):    
+    def post(self,request):        
+        user = User.objects.get(id=request.user.id)
+        target = User.objects.get(id=request.data.get('target'))
+        action=request.data.get("action")
+        if action == "unfollow":
+            UserFollowing.objects.get(user_id=user,following_user_id=target).delete()                
         else:
-            return Response(friendsSerializer.errors,status=status.HTTP_400_BAD_REQUEST)
+            UserFollowing.objects.create(user_id=user,following_user_id=target)                
+
+        
+        return Response(status=status.HTTP_200_OK)
+

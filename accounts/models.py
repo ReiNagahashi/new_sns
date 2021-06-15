@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import constraints
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import AbstractBaseUser,PermissionsMixin,BaseUserManager
@@ -31,17 +32,17 @@ class CustomAccountManager(BaseUserManager):
 class User(AbstractBaseUser,PermissionsMixin):
     email = models.EmailField(_('email address'),unique=True)
     fullname = models.CharField(max_length=100)
-    introduction = models.TextField(null=True)
+    introduction = models.TextField(null=True,max_length=70)
     date = models.DateTimeField(default=timezone.now)
     avatar = models.ImageField(_("Image"),upload_to=upload_to,null=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    friends = models.ManyToManyField('self',through="Follow",blank=True,related_name='friendsUser')
     objects = CustomAccountManager()    
 
     USERNAME_FIELD='email'
 
 # follow user
-class Follow(models.Model):
-    follower = models.ForeignKey(User,on_delete=models.CASCADE,related_name="follower")
-    target = models.ForeignKey(User,on_delete=models.CASCADE,related_name="target")
+class UserFollowing(models.Model):
+    user_id = models.ForeignKey(User,on_delete=models.CASCADE,related_name="following")
+    following_user_id = models.ForeignKey(User,on_delete=models.CASCADE,related_name="followers")
+    timestamp = models.DateTimeField(auto_now_add=True)

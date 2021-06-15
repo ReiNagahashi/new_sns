@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .sz import ProblemSerializer,ProblemLikeSerializer,BasicProblemSerializer
+from .sz import ProblemSerializer
 from accounts.sz import GetFullUserSerializer as GS
 from rest_framework.response import Response
 from rest_framework.views import APIView

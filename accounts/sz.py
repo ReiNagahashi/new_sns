@@ -1,22 +1,37 @@
+from django.db.models import fields
 from rest_framework import serializers as sz
-from .models import *
-from .models import User
+from .models import User,UserFollowing
 
-class GetUserIdSerializer(sz.ModelSerializer):
+class FollowingSerializer(sz.ModelSerializer):
+
     class Meta:
-        model = User
-        fields = ('id',)
-class FollowerTargetSerializer(sz.ModelSerializer):
-    follower=GetUserIdSerializer(read_only=True,many=False)
-    target=GetUserIdSerializer(read_only=True,many=False)
+        model = UserFollowing
+        fields = ("id","following_user_id","timestamp")
+
+class FollowersSerializer(sz.ModelSerializer):
+
     class Meta:
-        model = Follow
-        fields = ('id','target','follower')
+        model = UserFollowing
+        fields = ("id","user_id","timestamp")
+
+class GetBasicUserInfoSerializer(sz.ModelSerializer):
+    class Meta:
+        model=User
+        fields=("id","fullname","avatar","introduction")
+
 class GetFullUserSerializer(sz.ModelSerializer):
-    friends = FollowerTargetSerializer(read_only=True,many=True,allow_null=True)
+    following = sz.SerializerMethodField()
+    followers = sz.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ('id','fullname','email','introduction','avatar','friends')
+        fields = ('id','fullname','email','introduction','avatar','following','followers')
+    
+    def get_following(self,obj):
+        return FollowingSerializer(obj.following.all(),many=True).data
+    
+    def get_followers(self,obj):
+        return FollowersSerializer(obj.followers.all(),many=True).data
 
 class UserSerializerWithToken(sz.ModelSerializer):
     password = sz.CharField(write_only=True)
